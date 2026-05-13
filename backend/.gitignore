@@ -1,0 +1,56 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.log
+*.sqlite3
+*.db
+
+# --- Virtualenv / Poetry / Pipenv ---
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+poetry.lock
+Pipfile.lock
+
+# --- FastAPI / Uvicorn ---
+*.pid
+*.log
+*.coverage
+.coverage/
+htmlcov/
+.cache/
+.mypy_cache/
+.dmypy.json
+.pytest_cache/
+.pyre/
+
+# --- IDE: PyCharm ---
+.idea/
+*.iml
+
+# --- IDE: VS Code ---
+.vscode/
+.history/
+*.code-workspace
+
+# --- Jupyter / Notebooks ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- OS specific ---
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+*.dockerfile
+docker-compose.override.yml
