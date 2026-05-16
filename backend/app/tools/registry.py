@@ -1,15 +1,20 @@
 import traceback
 from web_search import WEB_SEARCH_SCHEMA, web_search
 from run_code import RUN_CODE_SCHEMA, run_code
+from database import GET_DB_SCHEMA, EXECUTE_SQL_SCHEMA, get_database_schema, execute_sql_query
 
 TOOLS = [
     WEB_SEARCH_SCHEMA,
     RUN_CODE_SCHEMA,
+    GET_DB_SCHEMA,
+    EXECUTE_SQL_SCHEMA,
 ]
 
 TOOL_EXECUTORS = {
     "web_search": web_search,
     "run_code": run_code,
+    "get_database_schema": get_database_schema,
+    "execute_sql_query": execute_sql_query,
 }
 
 
