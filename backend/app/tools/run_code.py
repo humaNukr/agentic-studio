@@ -1,17 +1,18 @@
+import asyncio
 import os
-from e2b_code_interpreter import AsyncSandbox
+import tempfile
 
 RUN_CODE_SCHEMA = {
     "type": "function",
     "function": {
         "name": "run_code",
-        "description": "Executes Python code in a secure sandboxed environment. Use this to perform math calculations, data analysis, or logic testing. Returns the console output (stdout) or errors (stderr).",
+        "description": "Executes Python code LOCALLY in the agent's environment. Use this to run bash commands via os.system, read/write local files, or process data. Print the final results using print().",
         "parameters": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "string",
-                    "description": "The pure Python code to execute. Do not include markdown formatting like ```python, just the raw code."
+                    "description": "The raw Python script to execute. Must include print() statements to output the result."
                 }
             },
             "required": ["code"]
@@ -19,43 +20,38 @@ RUN_CODE_SCHEMA = {
     }
 }
 
-
 async def run_code(code: str, **kwargs) -> str:
     """
-    Асинхронно створює хмарну мікро-віртуальну машину E2B,
-    виконує там згенерований Python-код і повертає результати (stdout/stderr) або стек помилки.
+    Приймає Python код від агента, зберігає у тимчасовий файл,
+    виконує в ізольованому підпроцесі з таймаутом і повертає stdout/stderr.
     """
-    if not os.environ.get("E2B_API_KEY"):
-        raise ValueError("E2B_API_KEY is not set in the environment variables.")
-
-    sandbox = await AsyncSandbox.create()
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', encoding='utf-8', delete=False) as f:
+        f.write(code)
+        temp_file_path = f.name
 
     try:
-        execution = await sandbox.run_code(code)
+        process = await asyncio.create_subprocess_exec(
+            "python", temp_file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        try:
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=15.0)
+        except asyncio.TimeoutError:
+            process.kill()
+            return "Execution Error: Script timed out after 15 seconds. Did you write an infinite loop?"
+
+        out_str = stdout.decode('utf-8').strip() if stdout else ""
+        err_str = stderr.decode('utf-8').strip() if stderr else ""
+
+        if process.returncode == 0:
+            if not out_str:
+                return "Execution successful, but no output was printed. Use print() to see results."
+            return f"Execution successful.\nOutput:\n{out_str}"
+        else:
+            return f"Execution failed.\nOutput:\n{out_str}\nErrors:\n{err_str}"
+
     finally:
-        await sandbox.kill()
-
-    if execution.error:
-        error_msg = (
-            f"Code Execution Failed!\n"
-            f"Type: {execution.error.name}\n"
-            f"Message: {execution.error.value}\n"
-            f"Traceback:\n{execution.error.traceback}"
-        )
-        return error_msg
-
-    output_parts = []
-
-    if execution.logs.stdout:
-        output_parts.append("STDOUT:\n" + "".join(execution.logs.stdout))
-
-    if execution.logs.stderr:
-        output_parts.append("STDERR (Warnings):\n" + "".join(execution.logs.stderr))
-
-    if not output_parts:
-        return (
-            "Code executed successfully, but there was no console output. "
-            "Tip: Ensure you use print() statements to output the required results."
-        )
-
-    return "\n\n".join(output_parts)
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
