@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
+from enum import Enum
 
 class Message(BaseModel):
     role: str = Field(..., description="The role of the message sender (user, assistant, system)")
@@ -16,3 +17,21 @@ class ChatRequest(BaseModel):
         default=None,
         description="Optional URL to receive the asynchronous result"
     )
+
+
+class EventType(str, Enum):
+    THOUGHT = "thought"
+    TOOL_CALL = "tool_call"
+    TOOL_RESULT = "tool_result"
+    ANSWER = "answer"
+    ERROR = "error"
+
+class AgentEvent(BaseModel):
+    type: EventType
+    content: str
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
+class AgentState(BaseModel):
+    session_id: str
+    messages: List[Dict[str, Any]] = Field(default_factory=list)
+    iteration_count: int = 0
