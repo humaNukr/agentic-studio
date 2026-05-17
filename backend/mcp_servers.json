@@ -9,6 +9,15 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "тут_буде_твій_токен"
       }
+    },
+
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/шлях/до/папки/твого/проекту"
+      ]
     }
   }
 }
