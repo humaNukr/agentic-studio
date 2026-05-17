@@ -21,6 +21,7 @@ ENV/
 pip-wheel-metadata/
 poetry.lock
 Pipfile.lock
+.env
 
 # --- FastAPI / Uvicorn ---
 *.pid
