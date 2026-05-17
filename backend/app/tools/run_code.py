@@ -6,7 +6,7 @@ RUN_CODE_SCHEMA = {
     "type": "function",
     "function": {
         "name": "run_code",
-        "description": "Executes Python code LOCALLY in the agent's environment. Use this to run bash commands via os.system, read/write local files, or process data. Print the final results using print().",
+        "description": "Executes Python code for data processing and calculations. os, subprocess, sys, shutil are forbidden.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -20,11 +20,23 @@ RUN_CODE_SCHEMA = {
     }
 }
 
+FORBIDDEN_IMPORTS = {"os", "subprocess", "sys", "shutil"}
+
+def is_safe_code(code: str) -> tuple[bool, str]:
+    for imp in FORBIDDEN_IMPORTS:
+        if f"import {imp}" in code or f"from {imp}" in code:
+            return False, f"Module '{imp}' is forbidden"
+    return True, "ok"
+
 async def run_code(code: str, **kwargs) -> str:
     """
     Приймає Python код від агента, зберігає у тимчасовий файл,
     виконує в ізольованому підпроцесі з таймаутом і повертає stdout/stderr.
     """
+    is_safe, error_msg = is_safe_code(code)
+    if not is_safe:
+        return f"Security Guardrail Blocked Execution: {error_msg}"
+
     with tempfile.NamedTemporaryFile(mode='w', suffix='.py', encoding='utf-8', delete=False) as f:
         f.write(code)
         temp_file_path = f.name
