@@ -1,10 +1,10 @@
 import logging
 from typing import Dict, Any, List
-
 from web_search import WEB_SEARCH_SCHEMA, web_search
 from run_code import RUN_CODE_SCHEMA, run_code
 from database import GET_DB_SCHEMA, EXECUTE_SQL_SCHEMA, get_database_schema, execute_sql_query
 from mcp_manager import MCPManager
+from shell import SHELL_SCHEMA, execute_shell
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ NATIVE_TOOLS = [
     RUN_CODE_SCHEMA,
     GET_DB_SCHEMA,
     EXECUTE_SQL_SCHEMA,
+    SHELL_SCHEMA,
 ]
 
 NATIVE_EXECUTORS = {
@@ -22,6 +23,7 @@ NATIVE_EXECUTORS = {
     "run_code": run_code,
     "get_database_schema": get_database_schema,
     "execute_sql_query": execute_sql_query,
+    "execute_shell": execute_shell,
 }
 
 
